@@ -1,0 +1,82 @@
+
+from pyspark.sql import HiveContext
+
+sqlContext = HiveContext(sc)
+
+dframe1 = sqlContext.read.load('/home/Pradeesh/Collision_Statistics_Monthly_new.csv',
+                          format='com.databricks.spark.csv', 
+                          header='true', 
+                          inferSchema='true')
+
+
+dframe1.createOrReplaceTempView("CollisionStatView")
+
+Question 1: Capture total incident counts (including Fatal, Injury and Property Damage) in a year (grouped by year).
+
+%%time
+dframe2 = spark.sql("""select YEAR, cast(sum(FATAL + INJURY + `PROPERTY DAMAGE`) as decimal (8,0)) as `Total Incident count` 
+from CollisionStatView
+GROUP BY YEAR
+ORDER BY sum(FATAL + INJURY + `PROPERTY DAMAGE`) DESC""").show()
+
++----+--------------------+
+|YEAR|Total Incident count|
++----+--------------------+
+|2000|               60823|
+|2001|               58498|
+|2002|               55977|
+|2003|               50492|
++----+--------------------+
+
+CPU times: user 0 ns, sys: 4 ms, total: 4 ms
+Wall time: 1.38 s
+
+---------------------------------------------------------------------------------------------
+
+Question 2: Capture sum of injuries in Nova Scotia grouped by year.
+
+%%time
+dframe3 = spark.sql("""select YEAR, GeogName,cast(sum(INJURY) as decimal (8,0)) as `Total Injury count` 
+from CollisionStatView
+WHERE GeogName = 'Nova Scotia'
+GROUP BY YEAR, GeogName
+ORDER BY sum(INJURY) DESC""").show()
+
++----+-----------+------------------+
+|YEAR|   GeogName|Total Injury count|
++----+-----------+------------------+
+|2000|Nova Scotia|              9849|
+|2001|Nova Scotia|              8975|
+|2002|Nova Scotia|              8471|
+|2003|Nova Scotia|              7488|
++----+-----------+------------------+
+
+CPU times: user 0 ns, sys: 4 ms, total: 4 ms
+Wall time: 1.88 s
+
+-------------------------------------------------------------------------------------------------
+
+Question 3: Capture sum of injury in Yarmouth Country in the year of 2000.
+
+%%time
+dframe4 = spark.sql("""select YEAR, GeogName,cast(sum(INJURY) as decimal (8,0)) as `Total Injury count` 
+from CollisionStatView
+WHERE GeogName = 'Yarmouth County' and YEAR = '2000'
+GROUP BY YEAR,GeogName
+ORDER BY sum(INJURY) DESC""").show()
+
++----+---------------+------------------+
+|YEAR|       GeogName|Total Injury count|
++----+---------------+------------------+
+|2000|Yarmouth County|               174|
++----+---------------+------------------+
+
+CPU times: user 0 ns, sys: 0 ns, total: 0 ns
+Wall time: 1.05 s
+
+==========================================================================================================
+
+
+
+
+

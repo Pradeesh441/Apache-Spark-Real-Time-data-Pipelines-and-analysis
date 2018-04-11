@@ -1,0 +1,115 @@
+sqlContext = SQLContext(sc)
+
+dataframe1 = sqlContext.read.load('/home/Pradeesh/NationalNames.csv',
+                          format='com.databricks.spark.csv', 
+                          header='true', 
+                          inferSchema='true')
+
+from pyspark.sql.functions import * 
+
+1.Total number of birth registered in a year:
+
+%time ques1 = dataframe1.groupBy("year").sum("count").sort(sum("count").desc())
+ques1.show()
+
+CPU times: user 4 ms, sys: 0 ns, total: 4 ms
+Wall time: 80.6 ms
++----+----------+
+|year|sum(count)|
++----+----------+
+|1957|   4200026|
+|1959|   4156553|
+|1960|   4154810|
+|1961|   4139818|
+|1958|   4131596|
+|1956|   4121206|
+|1962|   4035493|
+|1955|   4012582|
+|2007|   3991547|
+|1954|   3979056|
+|1963|   3958972|
+|2006|   3950840|
+|1990|   3950252|
+|2008|   3923523|
+|1991|   3893897|
+|1964|   3887864|
+|1953|   3850103|
+|1989|   3843104|
+|2005|   3840220|
+|1992|   3839692|
++----+----------+
+only showing top 20 rows
+
+--------------------------------------------------------------------------------------------------
+
+2.Total number of births registered in a year by gender:
+
+%time ques2 = dataframe1.groupBy("gender","year").sum("count")
+ques2.show()
+
+CPU times: user 0 ns, sys: 4 ms, total: 4 ms
+Wall time: 32.4 ms
++------+----+----------+
+|gender|year|sum(count)|
++------+----+----------+
+|     F|1984|   1682973|
+|     M|1903|    119234|
+|     F|1968|   1640103|
+|     F|1983|   1670061|
+|     F|1909|    347228|
+|     F|1915|    983874|
+|     M|1910|    194218|
+|     F|1928|   1153117|
+|     F|1941|   1207919|
+|     F|1919|   1130145|
+|     F|2008|   1887234|
+|     M|1929|   1075313|
+|     F|1964|   1894594|
+|     M|1973|   1559338|
+|     M|1925|   1115958|
+|     F|1988|   1779839|
+|     M|2006|   2052377|
+|     M|1914|    654762|
+|     F|1938|   1103277|
+|     M|1948|   1754469|
++------+----+----------+
+only showing top 20 rows
+
+-------------------------------------------------------------------
+
+3.Input a year and populate top 5 most popular names registered that year:
+
+%time ques3 = dataframe1.filter(dataframe1['year'] == 1905).sort(dataframe1['count'].desc()).limit(5).select("name")
+ques3.show()
+
+CPU times: user 4 ms, sys: 0 ns, total: 4 ms
+Wall time: 42.3 ms
++-------+
+|   name|
++-------+
+|   Mary|
+|   John|
+|  Helen|
+|William|
+|  James|
++-------+
+
+---------------------------------------------------------------------
+
+4.Input a child name and populate total number of birth registrations throughout the dataset for that name:
+
+%time ques4 = dataframe1.filter(dataframe1['name'] == "Mary").groupBy("name").sum('count')
+ques4.show()
+
+CPU times: user 0 ns, sys: 4 ms, total: 4 ms
+Wall time: 38.2 ms
++----+----------+
+|name|sum(count)|
++----+----------+
+|Mary|   4130441|
++----+----------+
+
+-------------------------------------------------------------------------------------------------
+
+
+
